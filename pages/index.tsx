@@ -46,11 +46,6 @@ export default function Home() {
     const input = document.querySelector<HTMLInputElement>("[name=typeInput]");
 
     switch (key) {
-      case "Backspace":
-        if (currentText.length === 0) return;
-        setCurrentText((prev) => prev.slice(0, -1));
-        console.log(currentText);
-        break;
       case " ":
         if (currentText === textToWrite[index]) {
           setWritedText((prev) => [...prev, currentText]);
@@ -67,7 +62,7 @@ export default function Home() {
         console.log(currentText);
         break;
       default:
-        break;
+        return;
     }
   };
 
@@ -153,6 +148,7 @@ export default function Home() {
                 autoFocus
                 ref={typeInput}
                 onKeyUp={handleEvent}
+                value={currentText}
               />
             </div>
           </div>
