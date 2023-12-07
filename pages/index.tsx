@@ -1,8 +1,9 @@
+import Link from "next/link";
 import fullWords from "../components/Arrays";
 import TypeWriter from "typewriter-effect";
 import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
 import { useTimer } from "react-timer-hook";
+import { useEffect, useState } from "react";
 
 type ActiveWords = {
   prev: string;
@@ -10,26 +11,38 @@ type ActiveWords = {
   next: string;
 };
 
-type WrongWords = {
-  correct: string;
-  wrong: string;
+type Stats = {
+  correctCount: number;
+  wrongCount: number;
+  correctWords: string[];
+  wrongWords: string[];
 };
 
 export default function Home() {
   const time = new Date();
   time.setSeconds(time.getSeconds() + 60);
-
-  const { start, seconds } = useTimer({ expiryTimestamp: time, onExpire: () => setExpired(true), autoStart: false });
+  const { start, seconds, restart } = useTimer({ expiryTimestamp: time, onExpire: () => setExpired(true), autoStart: false });
   const [ready, setReady] = useState<boolean>(false);
   const [wrong, setWrong] = useState<boolean>(false);
   const [expired, setExpired] = useState<boolean>(false);
   const [activeWord, setActiveWord] = useState<string>("");
-  const [wrongWords, setWrongWords] = useState<WrongWords[]>([]);
+  const [stats, setStats] = useState<Stats>({
+    correctCount: 0,
+    wrongCount: 0,
+    correctWords: [],
+    wrongWords: [],
+  });
   const [activeWords, setActiveWords] = useState<ActiveWords>({
     prev: "",
     current: fullWords[Math.floor(Math.random() * fullWords.length)].toLowerCase(),
     next: fullWords[Math.floor(Math.random() * fullWords.length)].toLowerCase(),
   });
+
+  useEffect(() => {
+    if (expired) {
+      restart(time, false);
+    }
+  }, [expired, restart, time]);
 
   useEffect(() => {
     if (expired) {
@@ -45,8 +58,42 @@ export default function Home() {
   return (
     <main>
       {expired && (
-        <div className="bg-gray-900 p-8 rounded-lg fixed top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2">
-          <h1 className="text-2xl">Test of popup</h1>
+        <div className="h-screen w-screen z-10 bg-black bg-opacity-50 py-48 rounded-lg flex fixed top-0 left-0">
+          <div className="bg-gray-800 p-8 rounded-lg w-1/4 mx-auto">
+            <h1 className="text-4xl text-center font-medium text-lime-500 mt-7">Congratulations!</h1>
+            <p className="text-xl text-zinc-400 text-center mt-8">
+              You type with the speed of <span className="text-lime-500">{stats.correctCount} WPM</span>. Your accuracy was <span className="text-lime-500">{((100 * stats.correctCount) / (stats.correctCount + stats.wrongCount)).toFixed()}%</span>.
+            </p>
+            <div className="line my-8" />
+            <div>
+              <h2 className="text-lime-500 text-2xl font-medium">Statistics</h2>
+              <p className="text-lg text-zinc-400 mt-1">You can see your wrong words. You can also share your statistics with others.</p>
+              <div className="mt-4">
+                <Link href="#" className="btn-secondary">
+                  Statistics
+                </Link>
+              </div>
+            </div>
+            <div className="line my-8" />
+            <div className="text-center">
+              <button
+                onClick={() => {
+                  setStats({
+                    correctCount: 0,
+                    wrongCount: 0,
+                    correctWords: [],
+                    wrongWords: [],
+                  });
+                  setActiveWord("");
+                  setExpired(false);
+                  document.getElementById("type")?.scrollIntoView();
+                }}
+                className="btn"
+              >
+                Try again
+              </button>
+            </div>
+          </div>
         </div>
       )}
       <div className="max-w-screen-2xl px-6 mx-auto">
@@ -87,7 +134,6 @@ export default function Home() {
           <motion.button initial={{ opacity: 0, y: 100 }} animate={{ opacity: ready ? 1 : 0, y: ready ? 0 : 100 }} transition={{ duration: 0.5 }} onClick={() => document.getElementById("type")?.scrollIntoView()} className="border-2 border-lime-500 px-4 py-2 rounded-md text-lime-500 md:text-xl text-base mt-10 hover:bg-lime-500 hover:border-lime-500 hover:text-zinc-50 duration-150">
             {"Let's start"}
           </motion.button>
-          <button onClick={() => setExpired(true)}>Test btn</button>
         </section>
         {ready && (
           <section id="type" className="flex flex-col justify-center items-center h-screen">
@@ -114,6 +160,7 @@ export default function Home() {
                 className="bg-transparent rounded-full border-2 border-lime-500 px-6 py-3 md:text-xl text-base md:w-auto sm:w-64 w-48 focus:outline-none text-zinc-50 placeholder:text-zinc-400"
                 placeholder="Start typing..."
                 value={activeWord}
+                disabled={expired}
                 onChange={(e) => {
                   if (activeWords.prev === "") {
                     start();
@@ -123,17 +170,25 @@ export default function Home() {
                 onKeyDown={(e) => {
                   if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault();
-                    if (activeWord && activeWord.toLowerCase() !== activeWords.current.toLowerCase()) {
+
+                    if (activeWords.prev === "") {
+                      start();
+                    }
+
+                    if ((activeWord && activeWord.toLowerCase() !== activeWords.current.toLowerCase()) || activeWord === "") {
                       setWrong(true);
-                      setWrongWords([
-                        ...wrongWords,
-                        {
-                          correct: activeWords.current,
-                          wrong: activeWord,
-                        },
-                      ]);
+                      setStats({
+                        ...stats,
+                        wrongCount: stats.wrongCount + 1,
+                        wrongWords: [...stats.wrongWords, activeWords.current],
+                      });
                     } else {
                       setWrong(false);
+                      setStats({
+                        ...stats,
+                        correctCount: stats.correctCount + 1,
+                        correctWords: [...stats.correctWords, activeWords.current],
+                      });
                     }
 
                     setActiveWords({
