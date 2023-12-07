@@ -6,4 +6,12 @@
   * {
     @apply !scroll-smooth;
   }
+
+  ::-webkit-scrollbar {
+    @apply w-2;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-lime-500 rounded-lg;
+  }
 }

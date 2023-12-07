@@ -1,7 +1,8 @@
 import fullWords from "../components/Arrays";
 import TypeWriter from "typewriter-effect";
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useTimer } from "react-timer-hook";
 
 type ActiveWords = {
   prev: string;
@@ -10,20 +11,27 @@ type ActiveWords = {
 };
 
 export default function Home() {
+  const time = new Date();
+  time.setSeconds(time.getSeconds() + 60);
+
   const [ready, setReady] = useState<boolean>(false);
+  const [ended, setEnded] = useState<boolean>(false);
+  const [wrong, setWrong] = useState<boolean>(false);
+  const [activeWord, setActiveWord] = useState<string>("");
+  const { isRunning, start, restart, seconds } = useTimer({ expiryTimestamp: time, onExpire: () => setEnded(true), autoStart: false });
   const [activeWords, setActiveWords] = useState<ActiveWords>({
-    prev: "predchozi",
-    current: "aktivni",
-    next: "nasledujici",
+    prev: "",
+    current: fullWords[Math.floor(Math.random() * fullWords.length)],
+    next: fullWords[Math.floor(Math.random() * fullWords.length)],
   });
 
   return (
-    <main className="max-w-screen-2xl px-8 mx-auto">
-      <section className="flex flex-col justify-center items-center h-screen">
+    <main className="max-w-screen-2xl px-6 mx-auto">
+      <section className="flex flex-col justify-center items-center h-screen text-center">
         <motion.h1 initial={{ opacity: 0, x: -100 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }} className="md:text-6xl text-4xl text-zinc-50 font-normal">
           Welcome to
         </motion.h1>
-        <motion.h1 initial={{ opacity: 0, x: -500 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.3, delay: 0.5 }} className="font-medium italic text-lime-500 md:text-10xl text-8xl leading-none mt-4">
+        <motion.h1 initial={{ opacity: 0, x: -500 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.3, delay: 0.5 }} className="font-medium italic text-lime-500 md:text-10xl sm:text-8xl text-6xl leading-none mt-4">
           FastType
         </motion.h1>
         <motion.div initial={{ opacity: 0, x: -100 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5, delay: 0.75 }} className="md:text-2xl text-lg text-gray-50 mt-10">
@@ -59,10 +67,10 @@ export default function Home() {
       </section>
       {ready && (
         <section id="type" className="flex flex-col justify-center items-center h-screen">
-          <ul className="flex gap-x-8 items-center font-medium text-3xl text-zinc-50 select-none">
+          <ul className="flex md:flex-row flex-col gap-8 items-center font-medium text-3xl text-zinc-50 select-none">
             <div className="text-center text-lime-500 md:text-xl text-base">
               <li>Prev</li>
-              <li className="md:text-2xl text-lg text-zinc-400 mt-2">{activeWords.prev}</li>
+              <li className={`md:text-2xl text-lg mt-2 w-48 ${wrong ? "text-red-500" : "text-lime-500"}`}>{activeWords.prev}</li>
             </div>
             <div className="text-center text-lime-500 md:text-xl text-base">
               <li>Current</li>
@@ -70,12 +78,39 @@ export default function Home() {
             </div>
             <div className="text-center text-lime-500 md:text-xl text-base">
               <li>Next</li>
-              <li className="md:text-2xl text-lg text-zinc-400 mt-2">{activeWords.next}</li>
+              <li className="md:text-2xl text-lg text-zinc-400 mt-2 w-48">{activeWords.next}</li>
             </div>
           </ul>
           <div className="mt-10">
-            <input type="text" className="bg-transparent rounded-full border-2 border-lime-500 px-6 py-3 md:text-2xl text-lg focus:outline-none text-zinc-50 placeholder:text-zinc-400" placeholder="Start typing..." />
-            <p className="text-lime-500 text-center md:text-base text-sm mt-4">60 seconds left...</p>
+            <p className="text-zinc-400 text-sm my-2 text-center">
+              Press <span className="underline italic">space</span> or <span className="underline italic">enter</span> to confirm word.
+            </p>
+            <input
+              type="text"
+              className="bg-transparent rounded-full border-2 border-lime-500 px-6 py-3 md:text-xl text-base md:w-auto sm:w-64 w-48 focus:outline-none text-zinc-50 placeholder:text-zinc-400"
+              placeholder="Start typing..."
+              value={activeWord}
+              onChange={(e) => setActiveWord(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  if (activeWord !== activeWords.current) {
+                    setWrong(true);
+                  } else {
+                    console.log("Correct");
+
+                    setWrong(false);
+                  }
+
+                  setActiveWords({
+                    prev: activeWords.current,
+                    current: activeWords.next,
+                    next: fullWords[Math.floor(Math.random() * fullWords.length)],
+                  });
+                  setActiveWord("");
+                }
+              }}
+            />
+            <p className="text-lime-500 text-center md:text-base text-sm mt-4">{seconds === 0 ? "60" : seconds} seconds left...</p>
           </div>
         </section>
       )}
