@@ -17,14 +17,34 @@ type Stats = {
   wrongCount: number;
 };
 
+type Attempt = {
+  wpm: number;
+  accuracy: number;
+  date: Date;
+};
+
 export default function Home() {
   const time = new Date();
-  const attempts = localStorage.getItem("attempts");
   time.setSeconds(time.getSeconds() + 60);
-  const { start, seconds, restart, isRunning } = useTimer({ expiryTimestamp: time, onExpire: () => setExpired(true), autoStart: false });
+  const { start, seconds, restart, isRunning } = useTimer({
+    expiryTimestamp: time,
+    onExpire: () => {
+      setExpired(true);
+      addAttemptToLocalStorage();
+      restart(time, false);
+      setActiveWords({
+        prev: "",
+        current: fullWords[Math.floor(Math.random() * fullWords.length)].toLowerCase(),
+        next: fullWords[Math.floor(Math.random() * fullWords.length)].toLowerCase(),
+      });
+      setInputWord("");
+    },
+    autoStart: false,
+  });
   const [ready, setReady] = useState<boolean>(false);
   const [wrong, setWrong] = useState<boolean>(false);
   const [expired, setExpired] = useState<boolean>(false);
+  const [attempts, setAttempts] = useState<Attempt[] | null>(null);
   const [inputWord, setInputWord] = useState<string>("");
   const [stats, setStats] = useState<Stats>({ correctCount: 0, wrongCount: 0 });
   const [activeWords, setActiveWords] = useState<ActiveWords>({
@@ -33,33 +53,70 @@ export default function Home() {
     next: fullWords[Math.floor(Math.random() * fullWords.length)].toLowerCase(),
   });
 
-  useEffect(() => {
-    if (expired) {
-      restart(time, false);
+  const getAttemptsFromLocalStorage = (): Attempt[] | null => {
+    const attempts = localStorage.getItem("attempts");
+    if (attempts) {
+      const splitAttempts = attempts.split("|");
+      const attemptsArray: Attempt[] = [];
+
+      splitAttempts.forEach((attempt) => {
+        const splitAttempt = attempt.split(",");
+        attemptsArray.push({ wpm: parseInt(splitAttempt[0]), accuracy: parseInt(splitAttempt[1]), date: new Date(splitAttempt[2]) });
+      });
+
+      return attemptsArray;
+    } else {
+      return null;
     }
-  }, [expired, restart, time]);
+  };
+
+  const addAttemptToLocalStorage = () => {
+    const currentAttempts = localStorage.getItem("attempts");
+
+    if (currentAttempts) {
+      if (currentAttempts.split("|").length > 5) {
+        const splitAttempts = currentAttempts.split("|");
+        splitAttempts.pop();
+        localStorage.setItem("attempts", `${stats.correctCount},${((100 * stats.correctCount) / (stats.correctCount + stats.wrongCount)).toFixed()},${new Date()}|${splitAttempts.join("|")}`);
+      } else {
+        localStorage.setItem("attempts", `${stats.correctCount},${((100 * stats.correctCount) / (stats.correctCount + stats.wrongCount)).toFixed()},${new Date()}|${attempts}`);
+      }
+    } else {
+      localStorage.setItem("attempts", `${stats.correctCount},${((100 * stats.correctCount) / (stats.correctCount + stats.wrongCount)).toFixed()},${new Date()}`);
+    }
+
+    const attemptsFromLocalStorage = getAttemptsFromLocalStorage();
+    if (attemptsFromLocalStorage) {
+      setAttempts(attemptsFromLocalStorage);
+    }
+  };
+
+  const clearLocalStorage = () => {
+    localStorage.removeItem("attempts");
+    setAttempts(null);
+  };
 
   useEffect(() => {
-    if (expired) {
-      setActiveWords({
-        prev: "",
-        current: fullWords[Math.floor(Math.random() * fullWords.length)].toLowerCase(),
-        next: fullWords[Math.floor(Math.random() * fullWords.length)].toLowerCase(),
-      });
-      setInputWord("");
+    const attemptsFromLocalStorage = getAttemptsFromLocalStorage();
+
+    if (attemptsFromLocalStorage) {
+      setAttempts(attemptsFromLocalStorage);
     }
-  }, [expired]);
+  }, []);
 
   return (
     <main>
       {expired && (
-        <div className="h-screen w-screen z-10 bg-black bg-opacity-50 py-48 rounded-lg flex fixed top-0 left-0 bottom-0">
-          <div className="bg-gray-800 p-8 rounded-lg mx-auto w-1/5 h-max pb-12 my-auto">
-            <h1 className="text-4xl text-center font-medium text-lime-500 mt-7">Your Score</h1>
-            <div className="flex md:flex-row flex-col items-center justify-around w-full mt-8">
-              <div>
-                <h3 className="text-zinc-400 text-2xl text-center">Accuracy</h3>
-                <div className="w-32 h-32 mt-4">
+        <div className="h-screen w-screen z-10 bg-black bg-opacity-50 rounded-lg flex fixed top-0 left-0 bottom-0">
+          <div className="bg-gray-800 md:py-8 md:px-16 px-4 rounded-lg mx-auto h-max pb-12 my-auto">
+            <h1 className="md:text-4xl text-2xl text-center font-medium text-lime-500 mt-7">Your Score</h1>
+            <div className="flex md:flex-row flex-col items-center gap-x-16 w-full md:mt-8 mt-4">
+              <p className="md:hidden block text-zinc-400 text-center w-56">
+                You type with speed of <span className="text-lime-500">{stats.correctCount} WPM</span>. Your accuracy was <span className="text-lime-500">{((100 * stats.correctCount) / (stats.correctCount + stats.wrongCount)).toFixed() === "NaN" ? "0%" : `${((100 * stats.correctCount) / (stats.correctCount + stats.wrongCount)).toFixed()}%`}</span>.
+              </p>
+              <div className="md:block hidden">
+                <h3 className="text-zinc-400 text-center">Accuracy</h3>
+                <div className="xl:w-32 xl:h-32 w-28 h-28 mt-4">
                   <CircularProgressbar
                     strokeWidth={2}
                     text={((100 * stats.correctCount) / (stats.correctCount + stats.wrongCount)).toFixed() === "NaN" ? "0%" : `${((100 * stats.correctCount) / (stats.correctCount + stats.wrongCount)).toFixed()}%`}
@@ -72,14 +129,31 @@ export default function Home() {
                   />
                 </div>
               </div>
-              <div>
-                <h3 className="text-zinc-400 text-2xl text-center">Speed</h3>
-                <div className="w-32 h-32 border-2 border-lime-500 rounded-full mt-4 flex justify-center items-center text-2xl text-lime-500">{stats.correctCount} WPM</div>
+              <div className="md:block hidden">
+                <h3 className="text-zinc-400 text-center">Speed</h3>
+                <div className="xl:w-32 xl:h-32 w-28 h-28 border-2 border-lime-500 rounded-full mt-4 flex justify-center items-center md:text-2xl text-lg text-lime-500">{stats.correctCount} WPM</div>
               </div>
             </div>
-            <div className="text-center mt-12">
-              <h2 className="text-2xl text-lime-500 font-medium">Your Last Attempts</h2>
-              {!attempts && <p className="text-zinc-400 text-lg mt-4">You have no previous attempts.</p>}
+            <div className="text-center md:mt-12 mt-8">
+              <h2 className="md:text-2xl text-lg text-lime-500 font-medium">Your Last Attempts</h2>
+              {!attempts && <p className="text-zinc-400 md:text-lg text-base md:mt-4 mt-2">You have no previous attempts.</p>}
+              {attempts && (
+                <>
+                  <div className="flex flex-col gap-4 mt-4">
+                    {attempts.map((attempt, index) => (
+                      <div key={index} className="flex flex-row justify-between items-center">
+                        <p className="text-zinc-400 md:text-lg text-base">
+                          <span className="text-lime-500">{index + 1}.</span> {attempt.wpm} WPM, {attempt.accuracy}% ACC
+                        </p>
+                        <p className="text-zinc-400 md:block hidden text-lg">{attempt.date.toLocaleDateString()}</p>
+                      </div>
+                    ))}
+                  </div>
+                  <button onClick={clearLocalStorage} className="btn-secondary mt-4 md:text-base text-sm">
+                    Clear attempts
+                  </button>
+                </>
+              )}
             </div>
             <div className="text-center mt-12">
               <button
@@ -89,7 +163,7 @@ export default function Home() {
                   setExpired(false);
                   document.getElementById("type")?.scrollIntoView();
                 }}
-                className="btn"
+                className="btn md:text-base text-sm"
               >
                 Try again
               </button>
@@ -135,9 +209,6 @@ export default function Home() {
           <motion.button initial={{ opacity: 0, y: 100 }} animate={{ opacity: ready ? 1 : 0, y: ready ? 0 : 100 }} transition={{ duration: 0.5 }} onClick={() => document.getElementById("type")?.scrollIntoView()} className="btn mt-8 text-lg">
             {"Let's start"}
           </motion.button>
-          <button className="btn" onClick={() => setExpired(true)}>
-            Test
-          </button>
         </section>
         {ready && (
           <section id="type" className="flex flex-col justify-center items-center h-screen">
