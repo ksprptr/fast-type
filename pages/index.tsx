@@ -1,9 +1,10 @@
-import Link from "next/link";
+import "react-circular-progressbar/dist/styles.css";
 import fullWords from "../components/Arrays";
 import TypeWriter from "typewriter-effect";
 import { motion } from "framer-motion";
 import { useTimer } from "react-timer-hook";
 import { useEffect, useState } from "react";
+import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
 
 type ActiveWords = {
   prev: string;
@@ -14,47 +15,23 @@ type ActiveWords = {
 type Stats = {
   correctCount: number;
   wrongCount: number;
-  correctWords: string[];
-  wrongWords: WrongWords[];
-};
-
-type WrongWords = {
-  correct: string;
-  wrong: string;
 };
 
 export default function Home() {
   const time = new Date();
+  const attempts = localStorage.getItem("attempts");
   time.setSeconds(time.getSeconds() + 60);
   const { start, seconds, restart, isRunning } = useTimer({ expiryTimestamp: time, onExpire: () => setExpired(true), autoStart: false });
   const [ready, setReady] = useState<boolean>(false);
   const [wrong, setWrong] = useState<boolean>(false);
   const [expired, setExpired] = useState<boolean>(false);
   const [inputWord, setInputWord] = useState<string>("");
-  const [stats, setStats] = useState<Stats>({
-    correctCount: 0,
-    wrongCount: 0,
-    correctWords: [],
-    wrongWords: [],
-  });
+  const [stats, setStats] = useState<Stats>({ correctCount: 0, wrongCount: 0 });
   const [activeWords, setActiveWords] = useState<ActiveWords>({
     prev: "",
     current: fullWords[Math.floor(Math.random() * fullWords.length)].toLowerCase(),
     next: fullWords[Math.floor(Math.random() * fullWords.length)].toLowerCase(),
   });
-
-  const formatWrongWords = (wrongWords: WrongWords[]): string => {
-    let formatted = "";
-
-    wrongWords.forEach((word, index) => {
-      formatted += `${word.correct}-${word.wrong}`;
-
-      if (index !== wrongWords.length - 1) {
-        formatted += ",";
-      }
-    });
-    return formatted;
-  };
 
   useEffect(() => {
     if (expired) {
@@ -76,37 +53,39 @@ export default function Home() {
   return (
     <main>
       {expired && (
-        <div className="h-screen w-screen z-10 bg-black bg-opacity-50 py-48 rounded-lg flex fixed top-0 left-0">
-          <div className="bg-gray-800 p-8 rounded-lg w-1/4 mx-auto">
-            <h1 className="text-4xl text-center font-medium text-lime-500 mt-7">Congratulations!</h1>
-            <p className="text-xl text-zinc-400 text-center mt-8">
-              You type with the speed of <span className="text-lime-500">{stats.correctCount} WPM</span>. Your accuracy was <span className="text-lime-500">{((100 * stats.correctCount) / (stats.correctCount + stats.wrongCount)).toFixed()}%</span>.
-            </p>
-            {stats.wrongCount < 50 && (
-              <>
-                <div className="line my-8" />
-                <div>
-                  <h2 className="text-lime-500 text-2xl font-medium">Statistics</h2>
-                  <p className="text-lg text-zinc-400 mt-1">You can see your wrong words. You can also share your statistics with others.</p>
-                  <div className="mt-4">
-                    <Link href={`/result?w=${formatWrongWords(stats.wrongWords)}&c=${stats.correctWords}`} className="btn-secondary">
-                      Statistics
-                    </Link>
-                  </div>
+        <div className="h-screen w-screen z-10 bg-black bg-opacity-50 py-48 rounded-lg flex fixed top-0 left-0 bottom-0">
+          <div className="bg-gray-800 p-8 rounded-lg mx-auto w-1/5 h-max pb-12 my-auto">
+            <h1 className="text-4xl text-center font-medium text-lime-500 mt-7">Your Score</h1>
+            <div className="flex md:flex-row flex-col items-center justify-around w-full mt-8">
+              <div>
+                <h3 className="text-zinc-400 text-2xl text-center">Accuracy</h3>
+                <div className="w-32 h-32 mt-4">
+                  <CircularProgressbar
+                    strokeWidth={2}
+                    text={((100 * stats.correctCount) / (stats.correctCount + stats.wrongCount)).toFixed() === "NaN" ? "0%" : `${((100 * stats.correctCount) / (stats.correctCount + stats.wrongCount)).toFixed()}%`}
+                    styles={buildStyles({
+                      pathColor: "#84cc16",
+                      textColor: "#84cc16",
+                      trailColor: "#374151",
+                    })}
+                    value={(100 * stats.correctCount) / (stats.correctCount + stats.wrongCount)}
+                  />
                 </div>
-              </>
-            )}
-            <div className="line my-8" />
-            <div className="text-center">
+              </div>
+              <div>
+                <h3 className="text-zinc-400 text-2xl text-center">Speed</h3>
+                <div className="w-32 h-32 border-2 border-lime-500 rounded-full mt-4 flex justify-center items-center text-2xl text-lime-500">{stats.correctCount} WPM</div>
+              </div>
+            </div>
+            <div className="text-center mt-12">
+              <h2 className="text-2xl text-lime-500 font-medium">Your Last Attempts</h2>
+              {!attempts && <p className="text-zinc-400 text-lg mt-4">You have no previous attempts.</p>}
+            </div>
+            <div className="text-center mt-12">
               <button
                 onClick={() => {
-                  setStats({
-                    correctCount: 0,
-                    wrongCount: 0,
-                    correctWords: [],
-                    wrongWords: [],
-                  });
                   setInputWord("");
+                  setStats({ correctCount: 0, wrongCount: 0 });
                   setExpired(false);
                   document.getElementById("type")?.scrollIntoView();
                 }}
@@ -156,6 +135,9 @@ export default function Home() {
           <motion.button initial={{ opacity: 0, y: 100 }} animate={{ opacity: ready ? 1 : 0, y: ready ? 0 : 100 }} transition={{ duration: 0.5 }} onClick={() => document.getElementById("type")?.scrollIntoView()} className="btn mt-8 text-lg">
             {"Let's start"}
           </motion.button>
+          <button className="btn" onClick={() => setExpired(true)}>
+            Test
+          </button>
         </section>
         {ready && (
           <section id="type" className="flex flex-col justify-center items-center h-screen">
@@ -200,20 +182,12 @@ export default function Home() {
                       setStats({
                         ...stats,
                         wrongCount: stats.wrongCount + 1,
-                        wrongWords: [
-                          ...stats.wrongWords,
-                          {
-                            correct: activeWords.current,
-                            wrong: inputWord,
-                          },
-                        ],
                       });
                     } else {
                       setWrong(false);
                       setStats({
                         ...stats,
                         correctCount: stats.correctCount + 1,
-                        correctWords: [...stats.correctWords, activeWords.current],
                       });
                     }
 
