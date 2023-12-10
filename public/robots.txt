@@ -1,0 +1,9 @@
+# *
+User-agent: *
+Allow: /
+
+# Host
+Host: https://fasttype.kasparpetr.com
+
+# Sitemaps
+Sitemap: https://fasttype.kasparpetr.com/sitemap.xml

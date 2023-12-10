@@ -23,9 +23,4 @@
   .btn-secondary {
     @apply border border-lime-500 text-lime-500 hover:bg-lime-500/10 active:bg-lime-500/20 py-2 px-4 duration-150 font-medium rounded-lg;
   }
-
-  /* Line */
-  .line {
-    @apply w-full bg-gray-700 h-[1px] rounded-full my-4;
-  }
 }

@@ -6,21 +6,15 @@ import { useTimer } from "react-timer-hook";
 import { useEffect, useState } from "react";
 import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
 
-type ActiveWords = {
-  prev: string;
-  current: string;
-  next: string;
-};
-
 type Stats = {
   correctCount: number;
   wrongCount: number;
 };
 
-type Attempt = {
-  wpm: number;
-  accuracy: number;
-  date: Date;
+type ActiveWords = {
+  prev: string;
+  current: string;
+  next: string;
 };
 
 export default function Home() {
@@ -43,49 +37,43 @@ export default function Home() {
   });
   const [ready, setReady] = useState<boolean>(false);
   const [wrong, setWrong] = useState<boolean>(false);
-  const [expired, setExpired] = useState<boolean>(false);
-  const [attempts, setAttempts] = useState<Attempt[] | null>(null);
-  const [inputWord, setInputWord] = useState<string>("");
   const [stats, setStats] = useState<Stats>({ correctCount: 0, wrongCount: 0 });
+  const [expired, setExpired] = useState<boolean>(false);
+  const [attempts, setAttempts] = useState<string[] | null>(null);
+  const [inputWord, setInputWord] = useState<string>("");
   const [activeWords, setActiveWords] = useState<ActiveWords>({
     prev: "",
     current: fullWords[Math.floor(Math.random() * fullWords.length)].toLowerCase(),
     next: fullWords[Math.floor(Math.random() * fullWords.length)].toLowerCase(),
   });
 
-  const getAttemptsFromLocalStorage = (): Attempt[] | null => {
+  const getAttemptsFromLocalStorage = (): string[] | null => {
     const attempts = localStorage.getItem("attempts");
     if (attempts) {
       const splitAttempts = attempts.split("|");
-      const attemptsArray: Attempt[] = [];
-
-      splitAttempts.forEach((attempt) => {
-        const splitAttempt = attempt.split(",");
-        attemptsArray.push({ wpm: parseInt(splitAttempt[0]), accuracy: parseInt(splitAttempt[1]), date: new Date(splitAttempt[2]) });
-      });
-
-      return attemptsArray;
-    } else {
-      return null;
+      return splitAttempts;
     }
+
+    return null;
   };
 
   const addAttemptToLocalStorage = () => {
     const currentAttempts = localStorage.getItem("attempts");
 
     if (currentAttempts) {
-      if (currentAttempts.split("|").length > 5) {
+      if (currentAttempts.split("|").length >= 5) {
         const splitAttempts = currentAttempts.split("|");
         splitAttempts.pop();
-        localStorage.setItem("attempts", `${stats.correctCount},${((100 * stats.correctCount) / (stats.correctCount + stats.wrongCount)).toFixed()},${new Date()}|${splitAttempts.join("|")}`);
+        localStorage.setItem("attempts", `${stats.correctCount},${((100 * stats.correctCount) / (stats.correctCount + stats.wrongCount)).toFixed()},${new Date().toLocaleDateString()}|${splitAttempts.join("|")}`);
       } else {
-        localStorage.setItem("attempts", `${stats.correctCount},${((100 * stats.correctCount) / (stats.correctCount + stats.wrongCount)).toFixed()},${new Date()}|${attempts}`);
+        localStorage.setItem("attempts", `${stats.correctCount},${((100 * stats.correctCount) / (stats.correctCount + stats.wrongCount)).toFixed()},${new Date().toLocaleDateString()}|${attempts?.join("|")}`);
       }
     } else {
-      localStorage.setItem("attempts", `${stats.correctCount},${((100 * stats.correctCount) / (stats.correctCount + stats.wrongCount)).toFixed()},${new Date()}`);
+      localStorage.setItem("attempts", `${stats.correctCount},${((100 * stats.correctCount) / (stats.correctCount + stats.wrongCount)).toFixed()},${new Date().toLocaleDateString()}`);
     }
 
     const attemptsFromLocalStorage = getAttemptsFromLocalStorage();
+
     if (attemptsFromLocalStorage) {
       setAttempts(attemptsFromLocalStorage);
     }
@@ -143,9 +131,9 @@ export default function Home() {
                     {attempts.map((attempt, index) => (
                       <div key={index} className="flex flex-row justify-between items-center">
                         <p className="text-zinc-400 md:text-lg text-base">
-                          <span className="text-lime-500">{index + 1}.</span> {attempt.wpm} WPM, {attempt.accuracy}% ACC
+                          <span className="text-lime-500">{index + 1}.</span> {attempt.split(",")[0]} WPM, {attempt.split(",")[1]}% ACC
                         </p>
-                        <p className="text-zinc-400 md:block hidden text-lg">{attempt.date.toLocaleDateString()}</p>
+                        <p className="text-zinc-400 md:block hidden text-lg">{attempt.split(",")[2]}</p>
                       </div>
                     ))}
                   </div>
