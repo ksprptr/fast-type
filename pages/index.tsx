@@ -17,6 +17,12 @@ type ActiveWords = {
   next: string;
 };
 
+type Attempts = {
+  wpm: number;
+  accuracy: string;
+  date: string;
+};
+
 export default function Home() {
   const time = new Date();
   time.setSeconds(time.getSeconds() + 60);
@@ -39,7 +45,7 @@ export default function Home() {
   const [wrong, setWrong] = useState<boolean>(false);
   const [stats, setStats] = useState<Stats>({ correctCount: 0, wrongCount: 0 });
   const [expired, setExpired] = useState<boolean>(false);
-  const [attempts, setAttempts] = useState<string[] | null>(null);
+  const [attempts, setAttempts] = useState<Attempts[] | null>(null);
   const [inputWord, setInputWord] = useState<string>("");
   const [activeWords, setActiveWords] = useState<ActiveWords>({
     prev: "",
@@ -47,35 +53,46 @@ export default function Home() {
     next: fullWords[Math.floor(Math.random() * fullWords.length)].toLowerCase(),
   });
 
-  const getAttemptsFromLocalStorage = (): string[] | null => {
+  const getAttemptsFromLocalStorage = (): Attempts[] | null => {
     const attempts = localStorage.getItem("attempts");
     if (attempts) {
-      const splitAttempts = attempts.split("|");
-      return splitAttempts;
+      const formattedAttempts = JSON.parse(attempts);
+      return formattedAttempts;
     }
 
     return null;
   };
 
   const addAttemptToLocalStorage = () => {
-    const currentAttempts = localStorage.getItem("attempts");
-
-    if (currentAttempts) {
-      if (currentAttempts.split("|").length >= 5) {
-        const splitAttempts = currentAttempts.split("|");
-        splitAttempts.pop();
-        localStorage.setItem("attempts", `${stats.correctCount},${((100 * stats.correctCount) / (stats.correctCount + stats.wrongCount)).toFixed()},${new Date().toLocaleDateString()}|${splitAttempts.join("|")}`);
-      } else {
-        localStorage.setItem("attempts", `${stats.correctCount},${((100 * stats.correctCount) / (stats.correctCount + stats.wrongCount)).toFixed()},${new Date().toLocaleDateString()}|${attempts?.join("|")}`);
-      }
-    } else {
-      localStorage.setItem("attempts", `${stats.correctCount},${((100 * stats.correctCount) / (stats.correctCount + stats.wrongCount)).toFixed()},${new Date().toLocaleDateString()}`);
-    }
-
     const attemptsFromLocalStorage = getAttemptsFromLocalStorage();
 
     if (attemptsFromLocalStorage) {
-      setAttempts(attemptsFromLocalStorage);
+      if (attemptsFromLocalStorage.length >= 5) {
+        attemptsFromLocalStorage.pop();
+        const newAttempt = {
+          wpm: stats.correctCount,
+          accuracy: ((100 * stats.correctCount) / (stats.correctCount + stats.wrongCount)).toFixed(),
+          date: new Date().toLocaleDateString(),
+        };
+        setAttempts([newAttempt, ...attemptsFromLocalStorage]);
+        localStorage.setItem("attempts", JSON.stringify([newAttempt, ...attemptsFromLocalStorage]));
+      } else {
+        const newAttempt = {
+          wpm: stats.correctCount,
+          accuracy: ((100 * stats.correctCount) / (stats.correctCount + stats.wrongCount)).toFixed(),
+          date: new Date().toLocaleDateString(),
+        };
+        setAttempts([newAttempt, ...attemptsFromLocalStorage]);
+        localStorage.setItem("attempts", JSON.stringify([newAttempt, ...attemptsFromLocalStorage]));
+      }
+    } else {
+      const newAttempt = {
+        wpm: stats.correctCount,
+        accuracy: ((100 * stats.correctCount) / (stats.correctCount + stats.wrongCount)).toFixed(),
+        date: new Date().toLocaleDateString(),
+      };
+      setAttempts([newAttempt]);
+      localStorage.setItem("attempts", JSON.stringify([newAttempt]));
     }
   };
 
@@ -131,9 +148,9 @@ export default function Home() {
                     {attempts.map((attempt, index) => (
                       <div key={index} className="flex flex-row justify-between items-center">
                         <p className="text-zinc-400 md:text-lg text-base">
-                          <span className="text-lime-500">{index + 1}.</span> {attempt.split(",")[0]} WPM, {attempt.split(",")[1]}% ACC
+                          <span className="text-lime-500">{index + 1}.</span> {attempt.wpm} WPM, {attempt.accuracy}% ACC
                         </p>
-                        <p className="text-zinc-400 md:block hidden text-lg">{attempt.split(",")[2]}</p>
+                        <p className="text-zinc-400 md:block hidden text-lg">{attempt.date}</p>
                       </div>
                     ))}
                   </div>
