@@ -3,6 +3,7 @@ import SEO from "../next-seo.config";
 import Footer from "@/layout/Footer";
 import { Inter } from "next/font/google";
 import { useRouter } from "next/router";
+import { Analytics } from "@vercel/analytics/react";
 import { DefaultSeo } from "next-seo";
 import type { AppProps } from "next/app";
 
@@ -14,10 +15,13 @@ export default function App({ Component, pageProps }: AppProps) {
   const disabledPaths = ["/result", "/404", "/500"];
 
   return (
-    <div className={inter.className}>
-      <DefaultSeo {...SEO} />
-      <Component {...pageProps} />
-      {!disabledPaths.includes(router.pathname) && <Footer />}
-    </div>
+    <>
+      <Analytics />
+      <div className={inter.className}>
+        <DefaultSeo {...SEO} />
+        <Component {...pageProps} />
+        {!disabledPaths.includes(router.pathname) && <Footer />}
+      </div>
+    </>
   );
 }
