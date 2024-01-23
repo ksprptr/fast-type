@@ -237,7 +237,7 @@ export default function Home() {
               </p>
               <input
                 type="text"
-                className="bg-transparent rounded-full border-2 border-lime-500 px-6 py-3 md:text-xl text-base md:w-auto sm:w-64 w-48 focus:outline-none text-zinc-50 placeholder:text-zinc-400"
+                className="bg-transparent rounded-full border-2 border-lime-500 px-6 py-3 md:text-xl text-base md:w-auto sm:w-64 w-64 focus:outline-none text-zinc-50 placeholder:text-zinc-400"
                 placeholder={isRunning ? activeWords.current : "Start typing..."}
                 value={inputWord}
                 disabled={expired}
