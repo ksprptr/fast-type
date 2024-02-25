@@ -1,4 +1,21 @@
-const fullWords = [
+export interface Stats {
+  correctCount: number;
+  wrongCount: number;
+};
+
+export interface Attempts {
+  wpm: number;
+  accuracy: string;
+  date: string;
+};
+
+export interface ActiveWords {
+  prev: string;
+  current: string;
+  next: string;
+};
+
+export const wordsToType = [
   "ability",
   "able",
   "about",
@@ -990,5 +1007,3 @@ const fullWords = [
   "your",
   "yourself",
 ];
-
-export default fullWords;
