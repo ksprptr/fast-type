@@ -1,31 +1,39 @@
+# FastType
+
+Smart typing application that helps you to improve your typing speed and accuracy.
+
 ## Dependencies
 
 [Node.js](https://nodejs.org/en) version `18 or later..`
 
-[Yarn](https://classic.yarnpkg.com/lang/en/docs/install/) version `1.22 or later..` # if you don't wanna use `npm`
+[Yarn](https://classic.yarnpkg.com/lang/en/docs/install/) version `1.22 or later..` # if you don't wanna use `npm` or `pnpm`
 
 ## Installation
 
-First go to project folder
+Go to project folder
 
 ```bash
-cd project
+cd fasttype/
 ```
 
-Then create `node_modules` folder using
+Install all dependencies
 
 ```bash
-yarn
-# or
 npm install
+# or
+pnpm install
+# or
+yarn
 ```
 
-Run development server
+Start dev server
 
 ```bash
-yarn dev
-# or
 npm run dev
+# or
+pnpm run dev
+# or
+yarn
 ```
 
-Open [localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [localhost:3000](http://localhost:3000) in your browser to see project home page.
