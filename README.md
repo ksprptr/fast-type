@@ -13,7 +13,7 @@ Smart typing application that helps you to improve your typing speed and accurac
 Go to project folder
 
 ```bash
-cd fasttype/
+cd fast-type/
 ```
 
 Install all dependencies
