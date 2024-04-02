@@ -7,7 +7,7 @@ module.exports = {
     site_name: "FastType",
     images: [
       {
-        url: "https://cdn.kasparpetr.com/fasttype/og_image.png",
+        url: "https://fasttype.kasparpetr.com/assets/og_image.png",
         width: 1200,
         height: 630,
         alt: "FastType",
