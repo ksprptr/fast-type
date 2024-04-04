@@ -1,4 +1,4 @@
-import Logo from "@/public/assets/logo.png";
+import Logo from "@/public/assets/logo.svg";
 import Image from "next/image";
 import React from "react";
 import LinkButton from "@/components/common/LinkButton";
