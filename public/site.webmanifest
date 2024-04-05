@@ -3,7 +3,7 @@
   "short_name": "FastType",
   "description": "FastType is a smart typing application that helps you to improve your typing speed and accuracy.",
   "start_url": "/",
-  "display": "standalone",
+  "display": "browser",
   "background_color": "#1f2937",
   "theme_color": "#1f2937",
   "icons": [
