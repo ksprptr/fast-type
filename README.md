@@ -28,4 +28,4 @@ Start dev server
 pnpm run dev
 ```
 
-Open [localhost:3000](http://localhost:3000) in your browser to see project home page.
+Open [localhost:3000](http://localhost:3000) in your browser to see the project home page.
