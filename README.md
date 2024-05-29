@@ -10,7 +10,7 @@ Smart typing application that helps you to improve your typing speed and accurac
 
 ## Installation
 
-Go to project folder
+Go to the project folder
 
 ```bash
 cd fast-type/
