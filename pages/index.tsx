@@ -1,8 +1,8 @@
 import "react-circular-progressbar/dist/styles.css";
-import Popup from "@/components/common/Popup";
 import Layout from "@/components/layouts/Layout";
 import Button from "@/components/common/Button";
 import TypeWriter from "typewriter-effect";
+import ModalWindow from "@/components/common/ModalWindow";
 import { motion } from "framer-motion";
 import { useTimer } from "react-timer-hook";
 import { useEffect, useState } from "react";
@@ -114,9 +114,9 @@ export default function Home() {
   return (
     <main>
       {expired && (
-        <Popup>
-          <div className="bg-gray-800 md:py-8 md:px-16 px-4 rounded-lg mx-auto h-max pb-12 my-auto">
-            <h1 className="md:text-4xl text-2xl text-center font-medium text-primary mt-7">Your Score</h1>
+        <ModalWindow>
+          <div className="bg-gray-800 md:py-12 py-8 md:px-16 px-4 rounded-lg">
+            <h1 className="md:text-4xl text-2xl text-center font-medium text-primary">Your Score</h1>
             <div className="flex md:flex-row flex-col items-center gap-x-16 w-full md:mt-8 mt-4">
               <p className="md:hidden block text-zinc-400 text-center w-56">
                 You type with speed of <span className="text-primary">{stats.correctCount} WPM</span>. Your accuracy was <span className="text-primary">{((100 * stats.correctCount) / (stats.correctCount + stats.wrongCount)).toFixed() === "NaN" ? "0%" : `${((100 * stats.correctCount) / (stats.correctCount + stats.wrongCount)).toFixed()}%`}</span>.
@@ -176,7 +176,7 @@ export default function Home() {
               </Button>
             </div>
           </div>
-        </Popup>
+        </ModalWindow>
       )}
       <Layout>
         <section className="flex flex-col justify-center items-center h-screen text-center">
@@ -224,7 +224,7 @@ export default function Home() {
             <ul className="flex md:flex-row flex-col gap-8 items-center font-medium text-3xl text-zinc-50 select-none">
               <li className="text-center text-primary md:text-xl text-base">
                 <h3>Prev</h3>
-                <h3 className={`md:text-2xl text-lg mt-2 w-48 ${wrong ? "text-red-500" : "text-primary"}`}>{activeWords.prev || "᲼"}</h3>
+                <h3 className={`md:text-2xl text-lg mt-2 w-48 ${wrong ? "text-red-500" : "text-primary"}`}>{activeWords.prev || "-"}</h3>
               </li>
               <li className="text-center text-primary md:text-xl text-base">
                 <h3>Current</h3>
