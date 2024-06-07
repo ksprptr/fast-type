@@ -14,10 +14,10 @@
     Scrollbar styles
   */
   ::-webkit-scrollbar {
-    @apply w-2;
+    @apply w-1;
   }
 
   ::-webkit-scrollbar-thumb {
-    @apply bg-primary rounded-lg;
+    @apply bg-primaryHover rounded-full;
   }
 }

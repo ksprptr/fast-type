@@ -6,7 +6,7 @@
 const config = {
   colors: {
     primary: '#84cc16',
-    primaryHover: '#a3e635',
+    primaryHover: '#65a30d',
   }
 }
 
