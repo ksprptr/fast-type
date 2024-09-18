@@ -1,5 +1,5 @@
 /** @type {import('next-sitemap').IConfig} */
 module.exports = {
-  siteUrl: 'https://fasttype.kasparpetr.com',
+  siteUrl: "https://fasttype.ksprptr.dev",
   generateRobotsTxt: true,
-}
+};

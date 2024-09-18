@@ -11,7 +11,7 @@ export default function Footer() {
         <span>&copy; FastType {new Date().getFullYear()}</span>
         <span>
           Created by{" "}
-          <Link href="https://kasparpetr.com" target="_blank" className="text-primary hover:underline duration-150 font-medium">
+          <Link href="https://ksprptr.dev" target="_blank" className="text-primary hover:underline duration-150 font-medium">
             Petr Kaspar
           </Link>
         </span>
